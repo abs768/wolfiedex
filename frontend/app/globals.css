@@ -1,0 +1,134 @@
+/*
+  globals.css — applied to every page in the app.
+
+  Next.js automatically loads this file because layout.tsx imports it.
+  Think of it as the "base layer" of all your styles.
+*/
+
+/* ─── Import Pokémon GameBoy CSS framework ───────────────────────────────── */
+/*
+  This CDN import pulls in the css-pokemon-gameboy stylesheet, which provides
+  GameBoy-style `.frame`, `.button`, and other pixel-themed utility classes.
+  It must come first so NES.css can override anything that conflicts.
+  @import rules must always appear before any other CSS — the browser ignores
+  them if they come after a regular rule.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/luttje/css-pokemon-gameboy@v0.6.1/dist-release/css-pokemon-gameboy.css');
+
+
+/* ─── Color variables ────────────────────────────────────────────────────── */
+/*
+  CSS custom properties (variables) let us define our color palette once
+  and reference it anywhere with var(--variable-name).
+  These blues are inspired by Water-type Pokémon.
+*/
+:root {
+  --color-bg: #000000;          /* deep black — the Game Boy screen off-state */
+  --color-primary: #4a90d9;     /* bright water blue — main accent */
+  --color-secondary: #1a3a5c;   /* deep ocean blue — backgrounds / borders */
+  --color-light: #a8d8ea;       /* light sky blue — text on dark backgrounds */
+  --color-text: #e0f0ff;        /* near-white with a blue tint — body text */
+}
+
+/* ─── Base reset & typography ────────────────────────────────────────────── */
+/*
+  * selects every element. box-sizing: border-box means padding and borders
+  are included in the element's total width/height — avoids layout surprises.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+
+  /*
+    "Press Start 2P" is our pixel font (loaded in layout.tsx via Google Fonts).
+    We fall back to a monospace font if it hasn't loaded yet.
+  */
+  font-family: var(--font-press-start), "Press Start 2P", monospace;
+
+  /*
+    Pixel fonts look best WITHOUT sub-pixel anti-aliasing.
+    These two lines keep the edges sharp and blocky.
+  */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* Remove default link styling so NES.css and our styles take over */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-press-start), "Press Start 2P", monospace;
+}
+
+input::selection {
+  background: transparent;
+}
+
+input:focus {
+  caret-color: #000000;
+}
+
+/* ─── Hand-rolled pixel chat bubbles (replaces NES.css nes-balloon) ──────── */
+
+.chat-bubble-user {
+  position: relative;
+  background: #1a3a5c;
+  border: 3px solid #a8d8ea;
+  padding: 10px 14px;
+  max-width: 70%;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.chat-bubble-user::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid #a8d8ea;
+}
+
+.chat-bubble-bot {
+  position: relative;
+  background: #0d2137;
+  border: 3px solid #4a90d9;
+  padding: 10px 14px;
+  max-width: 70%;
+  box-shadow: 3px 3px 0 #000;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0 }
+}
+.blink-cursor { animation: blink 1s infinite }
+
+.chat-bubble-bot::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 10px solid #4a90d9;
+}

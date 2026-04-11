@@ -1,0 +1,64 @@
+---
+
+## 📁 File Structure
+
+```
+wolfiedex/
+├── app/
+│   ├── layout.tsx        # App shell — loads font, sets <html>/<body>
+│   ├── page.tsx          # Main page — home screen + chat screen
+│   └── globals.css       # Global styles, color palette, animations
+├── components/
+│   ├── QueryInput.tsx    # Animated search box (home screen)
+│   ├── ChatWindow.tsx    # Scrollable chat history component
+│   └── EventCard.tsx     # Individual event display card
+├── data/
+│   └── mockEvents.ts     # Hardcoded SBU event data + Event type
+├── lib/
+│   └── filterEvents.ts   # Keyword matching logic for events
+├── public/
+│   ├── wolfiedex-bg.png  # Pixel art background image
+│   └── search-box.png    # Pixel art search bar graphic
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+## 🧠 What It Does
+
+**WolfieDex** is a Pokémon/GameBoy-themed AI event assistant for Stony Brook University students. You ask it questions about campus events — in plain English or via quick-tap filter chips — and it responds in a retro chat interface.
+
+**Two screens:**
+- **Home** — pixel art background, animated typewriter search box, 5 filter chips (Today, Free Food, Late Night, Sports, Career). Clicking a chip or pressing Enter transitions into chat mode.
+- **Chat** — blurred background, scrollable message history with query and response bubbles, persistent bottom input bar. Supports follow-up questions.
+
+**Flow:**
+1. User types a query or taps a chip
+2. Chip labels get expanded into full natural-language queries via `expandQuery()` before being sent
+3. A 300ms fade transition plays between screens
+4. The response appears character-by-character via a typewriter effect (40ms/char)
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Tool |
+|---|---|
+| Framework | **Next.js 14** (App Router) |
+| Language | **TypeScript** |
+| Styling | **Inline React styles** + custom CSS classes in `globals.css` |
+| Font | **Press Start 2P** via `next/font/google` (self-hosted) |
+| CSS Framework | **css-pokemon-gameboy** (CDN) for pixel aesthetic |
+| Images | **Next.js `<Image>`** component with `imageRendering: pixelated` |
+| Animation | CSS `@keyframes` (blinking cursor), JS `setInterval` (typewriter), CSS `opacity` transition (screen fade) |
+| State | React `useState`, `useEffect`, `useRef` |
+| Routing | Next.js App Router (single-page, state-driven screen switching) |
+
+---
+
+## 🔌 What's Stubbed / Coming Next (Phase 4)
+
+- `"this is a test output"` → will be replaced with a real **LLM/API call** using the expanded query string
+- `filterEvents.ts` + `mockEvents.ts` → will be replaced with a live **events database**
+- `isLoading` state is already declared, ready to drive a loading indicator
