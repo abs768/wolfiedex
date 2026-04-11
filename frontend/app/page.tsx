@@ -3,6 +3,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import QueryInput from "@/components/QueryInput";
+import EventCard from "@/components/EventCard";
+
+interface PrimaryEvent {
+  title: string
+  date_et: string
+  end_date_et: string
+  location: string
+  organization: string
+  benefits: string[]
+  image_url: string
+  url: string
+}
+
+interface SimilarEvent {
+  title: string
+  date_et: string
+  end_date_et: string
+  location: string
+  benefits: string[]
+}
 
 /* ─── Pixel heart SVG ────────────────────────────────────────────────────── */
 
@@ -106,7 +126,7 @@ export default function Home() {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [opacity, setOpacity] = useState(1);
-  const [messages, setMessages] = useState<{ query: string; response: string; isTyping: boolean }[]>([]);
+  const [messages, setMessages] = useState<{ query: string; response: string; isTyping: boolean; primaryEvents: PrimaryEvent[]; similarEvents: SimilarEvent[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [bottomQuery, setBottomQuery] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -124,35 +144,23 @@ export default function Home() {
     }
   }, [isSearchMode]);
 
-  /* Shared typewriter — always targets the last message in the array */
-  function runTypewriter(text: string) {
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          response: text.slice(0, i),
-        };
-        return updated;
-      });
-      if (i === text.length) {
-        clearInterval(interval);
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            isTyping: false,
-          };
-          return updated;
-        });
-      }
-    }, 40);
+  const callSearchAPI = async (query: string) => {
+    const res = await fetch('http://localhost:3001/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        currentDate: new Date().toLocaleDateString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        })
+      })
+    })
+    if (!res.ok) throw new Error('Search failed')
+    return res.json()
   }
 
   /* Home screen submit — fade out → switch → fade in */
-  const handleSubmit = (overrideQuery?: string) => {
+  const handleSubmit = async (overrideQuery?: string) => {
     const raw = overrideQuery || "";
     if (!raw.trim()) return;
     const expanded = expandQuery(raw);
@@ -160,21 +168,119 @@ export default function Home() {
     setIsTransitioning(true);
     setTimeout(() => {
       setIsSearchMode(true);
-      setMessages([{ query: expanded, response: "", isTyping: true }]);
       setOpacity(1);
       setIsTransitioning(false);
-      setTimeout(() => runTypewriter("this is a test output"), 600);
     }, 300);
+    setMessages(prev => [...prev, {
+      query: expanded,
+      response: '',
+      isTyping: true,
+      primaryEvents: [],
+      similarEvents: []
+    }]);
+    setIsLoading(true);
+    try {
+      const data = await callSearchAPI(expanded);
+      const text = data.ai_response;
+      let i = 0;
+      const interval = setInterval(() => {
+        i++;
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            response: text.slice(0, i)
+          };
+          return updated;
+        });
+        if (i === text.length) {
+          clearInterval(interval);
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              isTyping: false,
+              primaryEvents: data.primary_events,
+              similarEvents: data.similar_events
+            };
+            return updated;
+          });
+          setIsLoading(false);
+        }
+      }, 30);
+    } catch (err) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          response: 'Oops! Could not reach the server. Try again.',
+          isTyping: false,
+          primaryEvents: [],
+          similarEvents: []
+        };
+        return updated;
+      });
+      setIsLoading(false);
+    }
   };
 
-  /* Bottom chat input submit — calls shared handleSubmit logic */
-  const handleChatSubmit = () => {
+  /* Bottom chat input submit */
+  const handleChatSubmit = async () => {
     const raw = bottomQuery.trim();
     if (!raw) return;
     const expanded = expandQuery(raw);
     setBottomQuery("");
-    setMessages((prev) => [...prev, { query: expanded, response: "", isTyping: true }]);
-    setTimeout(() => runTypewriter("this is a test output"), 600);
+    setMessages(prev => [...prev, {
+      query: expanded,
+      response: '',
+      isTyping: true,
+      primaryEvents: [],
+      similarEvents: []
+    }]);
+    setIsLoading(true);
+    try {
+      const data = await callSearchAPI(expanded);
+      const text = data.ai_response;
+      let i = 0;
+      const interval = setInterval(() => {
+        i++;
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            response: text.slice(0, i)
+          };
+          return updated;
+        });
+        if (i === text.length) {
+          clearInterval(interval);
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              isTyping: false,
+              primaryEvents: data.primary_events,
+              similarEvents: data.similar_events
+            };
+            return updated;
+          });
+          setIsLoading(false);
+        }
+      }, 30);
+    } catch (err) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          response: 'Oops! Could not reach the server. Try again.',
+          isTyping: false,
+          primaryEvents: [],
+          similarEvents: []
+        };
+        return updated;
+      });
+      setIsLoading(false);
+    }
   };
 
   /* ── HOME SCREEN ────────────────────────────────────────────────────────── */
@@ -372,6 +478,30 @@ export default function Home() {
                   {message.isTyping && (
                     <span style={{ opacity: 0.7 }} className="blink-cursor">▌</span>
                   )}
+                </div>
+              )}
+
+              {message.primaryEvents?.length > 0 && (
+                <div style={{ alignSelf: 'flex-start', width: '75%', marginTop: '8px' }}>
+                  <div style={{
+                    fontFamily: "var(--font-press-start), 'Press Start 2P', monospace",
+                    fontSize: '8px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px'
+                  }}>TOP MATCHES</div>
+                  {message.primaryEvents.map((e, i) => (
+                    <EventCard key={i} {...e} variant="primary" />
+                  ))}
+                </div>
+              )}
+
+              {message.similarEvents?.length > 0 && (
+                <div style={{ alignSelf: 'flex-start', width: '75%', marginTop: '12px' }}>
+                  <div style={{
+                    fontFamily: "var(--font-press-start), 'Press Start 2P', monospace",
+                    fontSize: '8px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px'
+                  }}>YOU MIGHT ALSO LIKE</div>
+                  {message.similarEvents.map((e, i) => (
+                    <EventCard key={i} {...e} variant="similar" />
+                  ))}
                 </div>
               )}
 

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -maxdepth 3 -not -path */node_modules/* -not -path */.next/* -not -path */dist/* -type f)",
+      "Bash(find ./frontend -type f -not -path */node_modules/* -not -path */.next/*)",
+      "Read(//tmp/**)",
+      "Bash(npm install:*)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 23308 //PID 3460 //PID 42996)",
+      "Bash(xargs -I{} taskkill //F //PID {})"
+    ]
+  }
+}
