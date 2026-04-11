@@ -30,7 +30,6 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
   const client = await MongoClient.connect(MONGODB_URI, {
     tls: true,
     tlsAllowInvalidCertificates: true,
-    // @ts-expect-error — pass custom secure context for Node 25 compat
     secureContext,
   });
 
